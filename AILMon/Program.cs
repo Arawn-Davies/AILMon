@@ -8,12 +8,17 @@ namespace AILMon
         private static VM virtualMachine;
         static void Main(string[] args)
         {
+            Console.CursorLeft = 0;
+            Console.CursorTop = 0;
+            
             // Set the monitor to use current console
             Globals.console = new IOimpl();
             // Clear the application ROM, set to 65535 bytes
             byte[] rom = new byte[65535];
             // Make sure the ROM array is empty
             Array.Fill(rom, (byte)0);
+
+
 
             //Create a virtual machine, with the specified empty ROM, with an equal amount of RAM
             virtualMachine = new VM(rom, rom.Length + 1024);
@@ -47,10 +52,18 @@ namespace AILMon
             }
             else if (cmd.StartsWith("v"))
             {
+                if (args.Length == 1)
+                {
+                    for (int i = 0; i < virtualMachine.ram.memory.Length; i++)
+                    {
+                        if (((byte) virtualMachine.ram.memory[i] / 10) == 0)
+                        Console.WriteLine("");
+                    }
+                }
                 if (args.Length == 2)
                 {
                     ushort addr = HexToInt(args[1]);
-                    Console.WriteLine("0x" + virtualMachine.ram.memory[addr].ToString("X4"));
+                    Console.WriteLine("0x" + addr + " = " + "0x" + virtualMachine.ram.memory[addr].ToString("X4"));
                 }
                 else if (args.Length == 3)
                 {
@@ -61,7 +74,7 @@ namespace AILMon
 
                     for (int i = 0; i < arr.Length; i++)
                     {
-                        Console.WriteLine("0x" + virtualMachine.ram.memory[addr + i].ToString("X4"));
+                        Console.WriteLine("0x" + (addr + i) + " = " + "0x" + virtualMachine.ram.memory[addr + i].ToString("X4"));
                     }
                 }
             }
@@ -69,15 +82,45 @@ namespace AILMon
             {
                 if (args.Length == 3)
                 {
-
+                    ushort addr = HexToInt(args[1]);
+                    ushort end = HexToInt(args[2]);
+                    ushort val = HexToInt(args[3]);
+                    byte[] arr = new byte[(end - addr) + 1];
+                    Array.Copy(virtualMachine.ram.memory, arr, (end - addr) + 1);
+                    foreach (byte b in arr)
+                    {
+                        arr[b] = (byte) val;
+                    }
+                    Array.Copy(arr, 0, virtualMachine.ram.memory, addr, arr.Length);
                 }
+            }
+            else if (cmd.StartsWith("e"))
+            {
+                if (args.Length == 1)
+                {
+                    virtualMachine.Execute();
+                }
+                else if (args.Length == 2)
+                {
+                    ushort addr = HexToInt(args[1]);
+                    virtualMachine.ExecuteAtAddress((byte) addr);
+                }
+            }
+            else if (cmd == "")
+            {
+
+            }
+            else
+            {
+                Console.WriteLine("?");
             }
         }
 
         // M - modify
         // F - fill
         // V - view
-        // 
+        // E - execute
+
         private static ushort HexToInt(string hex)
         {
             int v = 0;

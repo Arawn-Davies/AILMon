@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Data.SqlTypes;
 using Apollo_IL;
 
 namespace AILMon
 {
     class Program
     {
+        private static bool vmode = true;
+
         public static byte[] HelloWorld =
         {
             65, 245, 2, 0, 0, 0,
@@ -65,7 +68,7 @@ namespace AILMon
 
             //Create a virtual machine, with the specified empty ROM, with an equal amount of RAM
             virtualMachine = new VM(HelloWorld, HelloWorld.Length + 1024);
-
+            
             while (true)
             {
                 Console.Write("#");
@@ -79,7 +82,106 @@ namespace AILMon
         {
             string cmd = op.ToLower();
             string[] args = cmd.Split(' ');
-            if (cmd.StartsWith("m"))
+
+            if (cmd.StartsWith("d"))
+            {
+                if (args.Length == 1)
+                {
+                    int val = Globals.DebugMode ? 1 : 0;
+                    Console.WriteLine(val);
+                }
+                else if (args.Length == 2)
+                {
+                    switch (args[1])
+                    {
+                        case "1":
+                        case "true":
+                            Globals.DebugMode = true;
+                            break;
+                        case "0":
+                        case "false":
+                            Globals.DebugMode = false;
+                            break;
+                        default:
+                            int val = Globals.DebugMode ? 1 : 0;
+                            Console.WriteLine(val);
+                            break;
+                    }
+                }
+            }
+            else if (cmd.StartsWith("e"))
+            {
+                if (args.Length == 1)
+                {
+                    virtualMachine.Execute();
+                }
+                else if (args.Length == 2)
+                {
+                    ushort addr = HexToInt(args[1]);
+                    virtualMachine.ExecuteAtAddress((byte) addr);
+                }
+            }
+            else if (cmd.StartsWith("f"))
+            {
+                if (args.Length == 4)
+                {
+                    // Beginning address
+                    ushort addr = HexToInt(args[1]);
+                    // Ending address
+                    ushort end = HexToInt(args[2]);
+                    // Value to replace as
+                    ushort val = HexToInt(args[3]);
+
+                    byte[] arr = new byte[(end - addr) + 1];
+
+                    if (end <= virtualMachine.ram.memory.Length)
+                    {
+                        for (int i = addr; i < (end + 1); i++)
+                        {
+                            virtualMachine.ram.memory[i] = (byte) val;
+                        }
+                    }
+
+                    /*
+                    Array.Copy(virtualMachine.ram.memory, arr, (end - addr) + 1);
+                    foreach (byte b in arr)
+                    {
+                        arr[b] = (byte) val;
+                    }
+
+
+
+                    Array.Copy(arr, 0, virtualMachine.ram.memory, addr, arr.Length);
+                    */
+                }
+            }
+            else if (cmd.StartsWith("h"))
+            {
+                if (args.Length == 1)
+                {
+                    int val = vmode ? 1 : 0;
+                    Console.WriteLine(val);
+                }
+                else if (args.Length == 2)
+                {
+                    switch (args[1])
+                    {
+                        case "1":
+                        case "true":
+                            vmode = true;
+                            break;
+                        case "0":
+                        case "false":
+                            vmode = false;
+                            break;
+                        default:
+                            int val = vmode ? 1 : 0;
+                            Console.WriteLine(val);
+                            break;
+                    }
+                }
+            }
+            else if (cmd.StartsWith("m"))
             {
                 if (args.Length == 2)
                 {
@@ -99,9 +201,33 @@ namespace AILMon
                 {
                     for (int i = 0; i < virtualMachine.ram.memory.Length; i++)
                     {
-                        if (((byte) virtualMachine.ram.memory[i] / 10) == 0)
-                        Console.WriteLine("");
+                        if (i % 10 == 0)
+                        {
+                            Console.Write("\n");
+                            if (vmode == true)
+                            {
+
+                                Console.Write(i + "\t= " + (int)virtualMachine.ram.memory[i] + ", ");
+                            }
+                            else
+                            {
+                                Console.Write(i.ToString("X4") + "\t= " + virtualMachine.ram.memory[i].ToString("X4") + ", ");
+                            }
+                        }
+                        else
+                        {
+                            if (vmode == true)
+                            {
+                                Console.Write(i + ", ");
+                            }
+                            else
+                            {
+                                Console.Write(i.ToString("X4") + ", ");
+                            }
+                            
+                        }
                     }
+                    Console.WriteLine("\n");
                 }
                 if (args.Length == 2)
                 {
@@ -115,53 +241,40 @@ namespace AILMon
                     byte[] arr = new byte[(end - addr) + 1];
                     Array.Copy(virtualMachine.ram.memory, arr, (end - addr) + 1);
 
+                    //for (int b = 0; b < arr.Length; b++)
+                    //{
+                    //    Console.WriteLine("0x" + (addr + b) + " = " + "0x" + virtualMachine.ram.memory[addr + b].ToString("X4"));
+                    //}
+
+                    
                     for (int i = 0; i < arr.Length; i++)
                     {
-                        Console.WriteLine("0x" + (addr + i) + " = " + "0x" + virtualMachine.ram.memory[addr + i].ToString("X4"));
+                        if (i % 10 == 0)
+                        {
+                            Console.Write("\n");
+                            if (vmode == true)
+                            {
+                                
+                                Console.Write(i + "\t= " + (int) virtualMachine.ram.memory[i] + ", ");
+                            }
+                            else
+                            {
+                                Console.Write(i.ToString("X4") + "\t= " + virtualMachine.ram.memory[i].ToString("X4") + ", ");
+                            }
+                        }
+                        else
+                        {
+                            if (vmode == true)
+                            {
+                                Console.Write(i + ", ");
+                            }
+                            else
+                            {
+                                Console.Write(i.ToString("X4") + ", ");
+                            }
+                        }
                     }
-                }
-            }
-            else if (cmd.StartsWith("f"))
-            {
-                if (args.Length == 4)
-                {
-                    // Beginning address
-                    ushort addr = HexToInt(args[1]);
-                    // Ending address
-                    ushort end = HexToInt(args[2]);
-                    // Value to replace as
-                    ushort val = HexToInt(args[3]);
-
-                    byte[] arr = new byte[(end - addr) + 1];
-
-                    for (int i = addr; i < (end + 1); i++)
-                    {
-                        virtualMachine.ram.memory[i] = (byte) val;
-                    }
-
-                    /*
-                    Array.Copy(virtualMachine.ram.memory, arr, (end - addr) + 1);
-                    foreach (byte b in arr)
-                    {
-                        arr[b] = (byte) val;
-                    }
-
-
-
-                    Array.Copy(arr, 0, virtualMachine.ram.memory, addr, arr.Length);
-                    */
-                }
-            }
-            else if (cmd.StartsWith("e"))
-            {
-                if (args.Length == 1)
-                {
-                    virtualMachine.Execute();
-                }
-                else if (args.Length == 2)
-                {
-                    ushort addr = HexToInt(args[1]);
-                    virtualMachine.ExecuteAtAddress((byte) addr);
+                    Console.WriteLine("\n");
                 }
             }
             else if (cmd == "")
@@ -174,10 +287,14 @@ namespace AILMon
             }
         }
 
-        // M - modify
-        // F - fill
-        // V - view
-        // E - execute
+
+        // D - view debug bit - turn debugging on/off - returns 0 if off, 1 if on
+        // E - execute - begin execution of the virtual machine,
+        //               optionally at the specified memory address
+        // F - fill - fill the range of the specified memory addresses with the specified value
+        // H - hex - switches view mode to represent memory addresses as hexadecimal
+        // M - modify - modify the value of a specific memory address
+        // V - view - view the value of a specific memory address
 
         private static ushort HexToInt(string hex)
         {

@@ -54,6 +54,8 @@ namespace AILMon
         private static VM virtualMachine;
         static void Main(string[] args)
         {
+            Console.SetWindowSize((80), (25));
+            Console.SetBufferSize((80), 25);
             Console.CursorLeft = 0;
             Console.CursorTop = 0;
             
@@ -277,6 +279,21 @@ namespace AILMon
                     Console.WriteLine("\n");
                 }
             }
+            else if (cmd.StartsWith("?"))
+            {
+                string h = "// D - Debug\t- turn debugging on/off - returns 0 if off, 1 if on\n//" +
+"\n// E - Execute\t- begin execution of the virtual machine," +
+"\n//           \t  optionally at the specified memory address\n//" +
+"\n// F - Fill\t- fill the range of the specified memory addresses" +
+"\n//           \t  with the specified value\n//" +
+"\n// H - Hex\t- switches view mode to represent memory addresses" +
+"\n//           \t  as hexadecimal or decimal\n//" +
+"\n// M - Modify\t- modify the value of a specific memory address\n//" +
+"\n// V - View\t- view the value of a specific memory address\n//";
+
+                Console.WriteLine(h);
+            }
+
             else if (cmd == "")
             {
 
@@ -288,13 +305,13 @@ namespace AILMon
         }
 
 
-        // D - view debug bit - turn debugging on/off - returns 0 if off, 1 if on
-        // E - execute - begin execution of the virtual machine,
+        // D - view Debug bit - turn debugging on/off - returns 0 if off, 1 if on
+        // E - Execute - begin execution of the virtual machine,
         //               optionally at the specified memory address
-        // F - fill - fill the range of the specified memory addresses with the specified value
-        // H - hex - switches view mode to represent memory addresses as hexadecimal
-        // M - modify - modify the value of a specific memory address
-        // V - view - view the value of a specific memory address
+        // F - Fill - fill the range of the specified memory addresses with the specified value
+        // H - Hex - switches view mode to represent memory addresses as hexadecimal
+        // M - Modify - modify the value of a specific memory address
+        // V - View - view the value of a specific memory address
 
         private static ushort HexToInt(string hex)
         {

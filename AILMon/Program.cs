@@ -6,7 +6,7 @@ namespace AILMon
 {
     class Program
     {
-        private static bool vmode = true;
+        private static bool vmode = false;
 
         public static byte[] HelloWorld =
         {
@@ -143,18 +143,6 @@ namespace AILMon
                             virtualMachine.ram.memory[i] = (byte) val;
                         }
                     }
-
-                    /*
-                    Array.Copy(virtualMachine.ram.memory, arr, (end - addr) + 1);
-                    foreach (byte b in arr)
-                    {
-                        arr[b] = (byte) val;
-                    }
-
-
-
-                    Array.Copy(arr, 0, virtualMachine.ram.memory, addr, arr.Length);
-                    */
                 }
             }
             else if (cmd.StartsWith("h"))
@@ -234,7 +222,15 @@ namespace AILMon
                 if (args.Length == 2)
                 {
                     ushort addr = HexToInt(args[1]);
-                    Console.WriteLine("0x" + addr + " = " + "0x" + virtualMachine.ram.memory[addr].ToString("X4"));
+                    
+                    if (vmode == true)
+                    {
+                        Console.WriteLine(addr + " = " + (int) virtualMachine.ram.memory[addr]);
+                    }
+                    else
+                    {
+                        Console.WriteLine(addr.ToString("X4") + " = " + virtualMachine.ram.memory[addr].ToString("X4"));
+                    }
                 }
                 else if (args.Length == 3)
                 {
